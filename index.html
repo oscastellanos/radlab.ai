@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R.A.D. Lab A.I. — Spatial Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --bg2: #0d1117;
+    --bg3: #111820;
+    --surface: #141c24;
+    --border: #1e2d3d;
+    --border-bright: #2a3f55;
+    --text: #c8d8e8;
+    --text-dim: #5a7a96;
+    --text-dimmer: #2e4a60;
+    --accent: #4af0c0;
+    --accent2: #1a8fff;
+    --accent3: #ff6b4a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── CANVAS ── */
+  #canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s, background 0.4s;
+  }
+  nav.scrolled {
+    border-color: var(--border);
+    background: rgba(8, 12, 16, 0.92);
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem 3rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .hero-title {
+    font-family: var(--serif);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 1.08;
+    color: #e8f4ff;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    max-width: 580px;
+    line-height: 1.8;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.8s forwards;
+  }
+
+  .btn-primary {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    padding: 0.85rem 2rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover {
+    background: #7affda;
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    padding: 0.85rem 2rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s, transform 0.15s;
+    display: inline-block;
+  }
+  .btn-ghost:hover {
+    color: var(--text);
+    border-color: var(--text-dim);
+    transform: translateY(-1px);
+  }
+
+  .hero-scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 3rem;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.5s forwards;
+  }
+  .hero-scroll-hint::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--text-dimmer);
+  }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    margin: 0 auto;
+    max-width: 1200px;
+  }
+
+  /* ── THESIS ── */
+  #thesis {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 7rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding-top: 0.35rem;
+    position: sticky;
+    top: 5rem;
+  }
+
+  .thesis-body h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    line-height: 1.2;
+    color: #e8f4ff;
+    margin-bottom: 1.5rem;
+    font-weight: 400;
+  }
+  .thesis-body h2 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .thesis-body p {
+    font-size: 0.97rem;
+    color: var(--text-dim);
+    margin-bottom: 1.25rem;
+    line-height: 1.85;
+  }
+
+  .thesis-body p strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── ARCHITECTURE ── */
+  #architecture {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 7rem 3rem;
+  }
+
+  .arch-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .arch-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4rem;
+    align-items: end;
+    margin-bottom: 4rem;
+  }
+
+  .arch-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    color: #e8f4ff;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .arch-header p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+    max-width: 400px;
+    align-self: end;
+  }
+
+  .arch-diagram {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 3rem;
+  }
+
+  .arch-cell {
+    background: var(--bg2);
+    padding: 2rem 1.75rem;
+    position: relative;
+    transition: background 0.25s;
+    cursor: default;
+  }
+  .arch-cell:hover { background: var(--surface); }
+
+  .arch-cell-num {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .arch-cell-title {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .arch-cell-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .arch-cell-tag {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.5rem;
+  }
+  .arch-cell-tag.universal {
+    color: var(--accent);
+    border-color: rgba(74, 240, 192, 0.3);
+  }
+
+  /* ── ADAPTERS ── */
+  #adapters {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 7rem 3rem;
+  }
+
+  .adapters-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    margin-bottom: 4rem;
+    align-items: end;
+  }
+
+  .adapters-header h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    color: #e8f4ff;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .adapters-header p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .adapters-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .adapter-card {
+    background: var(--bg);
+    padding: 1.75rem 1.5rem;
+    transition: background 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .adapter-card:hover { background: var(--surface); }
+  .adapter-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .adapter-card:hover::after { transform: scaleX(1); }
+
+  .adapter-icon {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .adapter-name {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .adapter-formats {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--accent2);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+  }
+
+  .adapter-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  .adapter-status {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid;
+  }
+  .adapter-status.active {
+    color: var(--accent);
+    border-color: rgba(74, 240, 192, 0.3);
+  }
+  .adapter-status.building {
+    color: #ffd44a;
+    border-color: rgba(255, 212, 74, 0.3);
+  }
+  .adapter-status.planned {
+    color: var(--text-dimmer);
+    border-color: var(--border);
+  }
+
+  /* ── RESEARCH CONNECTIONS ── */
+  #research {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 7rem 3rem;
+  }
+
+  .research-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .research-inner h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    color: #e8f4ff;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .research-inner > p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.8;
+    margin-bottom: 3.5rem;
+  }
+
+  .research-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .research-item {
+    background: var(--bg2);
+    padding: 2rem 2rem;
+    transition: background 0.25s;
+  }
+  .research-item:hover { background: var(--surface); }
+
+  .research-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+  }
+
+  .research-item-title {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
+  .research-item-author {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--accent2);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .research-item-relevance {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .research-item-relevance strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ── ABOUT ── */
+  #about {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 7rem 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: center;
+  }
+
+  .about-left h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    color: #e8f4ff;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+  .about-left h2 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .about-left p {
+    font-size: 0.93rem;
+    color: var(--text-dim);
+    line-height: 1.85;
+    margin-bottom: 1rem;
+  }
+
+  .about-left p strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .skills-list {
+    margin-top: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .skill-item {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .skill-item::before {
+    content: '▸';
+    color: var(--accent);
+    font-size: 0.65rem;
+  }
+
+  .about-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .stat-row {
+    background: var(--bg);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+  }
+  .stat-row:hover { background: var(--surface); }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── CONTACT ── */
+  #contact {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 7rem 3rem;
+    text-align: center;
+  }
+
+  .contact-inner {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  #contact .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  #contact h2 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    color: #e8f4ff;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+
+  #contact p {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 0.9rem 1.25rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .contact-form input::placeholder,
+  .contact-form textarea::placeholder {
+    color: var(--text-dimmer);
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .contact-form textarea { min-height: 120px; }
+
+  .contact-note {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.08em;
+    margin-top: 1.5rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-right {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dimmer);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── QUOTE BLOCK ── */
+  .pull-quote {
+    border-left: 2px solid var(--accent);
+    padding: 1rem 1.5rem;
+    margin: 2rem 0;
+    background: rgba(74, 240, 192, 0.04);
+  }
+  .pull-quote p {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text) !important;
+    line-height: 1.6;
+    margin: 0 !important;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    #hero { padding: 6rem 1.5rem 3rem; }
+    #thesis { grid-template-columns: 1fr; gap: 1.5rem; padding: 4rem 1.5rem; }
+    .section-label { position: static; }
+    #architecture { padding: 4rem 1.5rem; }
+    .arch-header { grid-template-columns: 1fr; gap: 1rem; }
+    .arch-diagram { grid-template-columns: 1fr; }
+    #adapters { padding: 4rem 1.5rem; }
+    .adapters-header { grid-template-columns: 1fr; gap: 1rem; }
+    .adapters-grid { grid-template-columns: repeat(2, 1fr); }
+    #research { padding: 4rem 1.5rem; }
+    .research-grid { grid-template-columns: 1fr; }
+    #about { grid-template-columns: 1fr; gap: 3rem; padding: 4rem 1.5rem; }
+    #contact { padding: 4rem 1.5rem; }
+    footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">R.A.D. Lab A.I. // Spatial Intelligence</div>
+  <ul class="nav-links">
+    <li><a href="#thesis">Thesis</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#adapters">Adapters</a></li>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#contact">Collaborate</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-eyebrow">// Signal → Semantics → Query</p>
+  <h1 class="hero-title">
+    Making physical<br>environments<br><em>queryable.</em>
+  </h1>
+  <p class="hero-sub">
+    A platform that ingests any sensory data — 3D scans, documents, audio, RF signals — extracts structured semantic scene graphs, and makes them available for natural language reasoning. Built for robotics. Designed for every domain.
+  </p>
+  <div class="hero-actions">
+    <a href="#thesis" class="btn-primary">Read the Thesis</a>
+    <a href="#contact" class="btn-ghost">Collaborate</a>
+  </div>
+  <div class="hero-scroll-hint">Scroll to explore</div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- THESIS -->
+<section id="thesis">
+  <div class="section-label reveal">Core Thesis</div>
+  <div class="thesis-body">
+    <h2 class="reveal">The gap between<br>sensing and <em>knowing.</em></h2>
+    <p class="reveal">
+      Frontier language models are remarkably capable reasoners — but they operate on text and images that are already semantic. Point clouds, RF spectra, volumetric scans, and sensor telemetry are <strong>signal-first</strong>: they require substantial domain-specific processing before any meaning can emerge.
+    </p>
+    <p class="reveal">
+      This gap — between raw physical signal and queryable semantic knowledge — is where robotics systems still struggle most. A robot that can navigate a known map is not the same as a robot that can answer <em>"is there enough clearance for a wheelchair between the desk and the door?"</em>
+    </p>
+    <div class="pull-quote reveal">
+      <p>"The most defensible position is to be the signal-to-semantics translation layer that sits upstream of whatever foundation model the world prefers."</p>
+    </div>
+    <p class="reveal">
+      I'm building a <strong>universal semantic memory platform</strong> — a system that ingests any sensory or documentary data source, extracts meaning through domain-specific adapters, and exposes that meaning through a unified graph store and natural language query interface. The 3D spatial search product is the first instantiation. Every adapter compounds the value of the infrastructure already built.
+    </p>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="arch-inner">
+    <div class="arch-header reveal">
+      <div>
+        <div class="section-label" style="margin-bottom: 1rem;">System Architecture</div>
+        <h2>Universal core.<br>Domain-specific adapters.</h2>
+      </div>
+      <p>The critical architectural boundary: adapters handle raw signal processing and produce a normalized graph. The universal core handles everything else — storage, retrieval, reasoning, and user interaction.</p>
+    </div>
+
+    <div class="arch-diagram reveal">
+      <div class="arch-cell">
+        <span class="arch-cell-tag universal">Universal</span>
+        <span class="arch-cell-num">01</span>
+        <div class="arch-cell-title">User Profile Store</div>
+        <div class="arch-cell-desc">Persistent representation of goals, background, and domain vocabulary. Acts as a scoring lens on every query — results are ranked by relevance to this specific user's work, not general similarity.</div>
+      </div>
+      <div class="arch-cell">
+        <span class="arch-cell-tag universal">Universal</span>
+        <span class="arch-cell-num">02</span>
+        <div class="arch-cell-title">Graph Store + Vector Index</div>
+        <div class="arch-cell-desc">Typed nodes with attributes, typed edges with weights, and a vector embedding per entity. pgvector for semantic retrieval. NetworkX for graph traversal. Schema-agnostic — any adapter's output lands here.</div>
+      </div>
+      <div class="arch-cell">
+        <span class="arch-cell-tag universal">Universal</span>
+        <span class="arch-cell-num">03</span>
+        <div class="arch-cell-title">RAG Agent Layer</div>
+        <div class="arch-cell-desc">LangGraph orchestration. Tools call into the graph store, vector index, and adapter-specific query functions. The agent constructs answers by traversing the scene graph with spatial, semantic, and temporal constraints.</div>
+      </div>
+      <div class="arch-cell">
+        <span class="arch-cell-tag">Adapter</span>
+        <span class="arch-cell-num">04</span>
+        <div class="arch-cell-title">Signal Processing</div>
+        <div class="arch-cell-desc">Domain-specific ingestion — Open3D for point clouds, PyMuPDF for documents, librosa for audio. Each adapter's only contract: produce typed nodes, typed edges, embeddings, and confidence scores.</div>
+      </div>
+      <div class="arch-cell">
+        <span class="arch-cell-tag">Adapter</span>
+        <span class="arch-cell-num">05</span>
+        <div class="arch-cell-title">Semantic Labeling</div>
+        <div class="arch-cell-desc">CLIP / SigLIP for zero-shot visual classification. CLAP for audio. NER for documents. The goal: every extracted entity has a human-readable label before it reaches the graph store.</div>
+      </div>
+      <div class="arch-cell">
+        <span class="arch-cell-tag">Adapter</span>
+        <span class="arch-cell-num">06</span>
+        <div class="arch-cell-title">Relationship Extraction</div>
+        <div class="arch-cell-desc">Spatial proximity, containment, and occlusion for 3D data. Co-authorship and affiliation for documents. Temporal co-occurrence for audio. Edges encode the structure that makes graph queries meaningful.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ADAPTERS -->
+<section id="adapters">
+  <div class="adapters-header reveal">
+    <div>
+      <div class="section-label" style="margin-bottom: 1rem;">Data Adapters</div>
+      <h2>Every signal domain.<br>One query interface.</h2>
+    </div>
+    <p>Each adapter translates a raw signal domain into the universal graph schema. Building a new adapter doesn't require touching the core — it only requires implementing the extraction contract.</p>
+  </div>
+
+  <div class="adapters-grid reveal">
+    <div class="adapter-card">
+      <span class="adapter-icon">⬡</span>
+      <div class="adapter-name">3D Spatial</div>
+      <div class="adapter-formats">PLY · OBJ · PCD · E57</div>
+      <div class="adapter-desc">Point cloud segmentation, RANSAC plane detection, CLIP-based zero-shot object labeling. Spatial relationships encoded as proximity, containment, and clearance edges.</div>
+      <span class="adapter-status active">In Development</span>
+    </div>
+    <div class="adapter-card">
+      <span class="adapter-icon">◱</span>
+      <div class="adapter-name">Document</div>
+      <div class="adapter-formats">PDF · HTML · MD · DOCX</div>
+      <div class="adapter-desc">Named entity recognition for people, organizations, topics, and dates. Co-authorship and affiliation graph construction. User profile relevance scoring at extraction time.</div>
+      <span class="adapter-status active">In Development</span>
+    </div>
+    <div class="adapter-card">
+      <span class="adapter-icon">◈</span>
+      <div class="adapter-name">CAD / BIM</div>
+      <div class="adapter-formats">IFC · STEP · DWG · RVT</div>
+      <div class="adapter-desc">Semantically rich building models with room types, material properties, and system relationships already encoded. Natural language querying of architectural intent vs. as-built reality.</div>
+      <span class="adapter-status building">Planned — Tier 1</span>
+    </div>
+    <div class="adapter-card">
+      <span class="adapter-icon">◎</span>
+      <div class="adapter-name">Video / Live Feed</div>
+      <div class="adapter-formats">MP4 · RTSP · ROS bag</div>
+      <div class="adapter-desc">Temporal sequence of spatial scene graphs. Frame-by-frame entity tracking with identity persistence. The live-data version of the static point cloud pipeline — Phase 2 of the robotics integration.</div>
+      <span class="adapter-status building">Planned — Tier 1</span>
+    </div>
+    <!-- <div class="adapter-card">
+      <span class="adapter-icon">◌</span>
+      <div class="adapter-name">Audio / Spatial Sound</div>
+      <div class="adapter-formats">WAV · Ambisonics · FLAC</div>
+      <div class="adapter-desc">Speaker diarization, sound event detection, spatial localization of sources. CLAP embeddings for semantic audio search. Inspired by spatial sound understanding work in computational acoustics.</div>
+      <span class="adapter-status planned">Planned — Tier 2</span>
+    </div>
+    <div class="adapter-card">
+      <span class="adapter-icon">⊕</span>
+      <div class="adapter-name">Geospatial</div>
+      <div class="adapter-formats">GeoJSON · Shapefile · GeoTIFF</div>
+      <div class="adapter-desc">Outdoor-to-indoor spatial continuity. Temporal change detection across satellite or drone captures. Combined with the 3D adapter enables queries that span building interiors and surrounding environments.</div>
+      <span class="adapter-status planned">Planned — Tier 2</span>
+    </div>
+    <div class="adapter-card">
+      <span class="adapter-icon">⊗</span>
+      <div class="adapter-name">Medical Imaging</div>
+      <div class="adapter-formats">DICOM · NIfTI · NRRD</div>
+      <div class="adapter-desc">Volumetric segmentation of anatomical structures. Spatial relationship queries at clinical resolution. Pipeline nearly identical to the 3D spatial adapter — different scale, different ontology, same architecture.</div>
+      <span class="adapter-status planned">Planned — Tier 3</span>
+    </div>
+    <div class="adapter-card">
+      <span class="adapter-icon">⋮</span>
+      <div class="adapter-name">RF / Signal</div>
+      <div class="adapter-formats">IQ · SigMF · Spectrum</div>
+      <div class="adapter-desc">Emitter identification, signal classification, spatial triangulation from multiple receivers. Combined with 3D spatial adapter enables environments queryable by both geometric structure and electromagnetic properties.</div>
+      <span class="adapter-status planned">Planned — Research</span>
+    </div> -->
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- RESEARCH CONNECTIONS -->
+<!-- <section id="research">
+  <div class="research-inner">
+    <div class="section-label reveal" style="margin-bottom: 1rem;">Research Connections</div>
+    <h2 class="reveal">Built on foundations<br>worth building on.</h2>
+    <p class="reveal">The platform draws on a specific set of research directions that have directly shaped architectural decisions. These aren't influences — they're load-bearing references.</p>
+
+    <div class="research-grid reveal">
+      <div class="research-item">
+        <div class="research-item-header">
+          <div class="research-item-title">ReMEmbR: Long-Horizon Spatio-Temporal Memory for Robot Navigation</div>
+          <div class="research-item-author">Biswas et al.</div>
+        </div>
+        <div class="research-item-relevance">The robot-side architecture this platform feeds into. <strong>Long-horizon spatial memory with on-demand retrieval</strong> is the consumption pattern the scene graph was designed to support.</div>
+      </div>
+      <div class="research-item">
+        <div class="research-item-header">
+          <div class="research-item-title">LaMPP: Language Models as Probabilistic Priors for Perception and Action</div>
+          <div class="research-item-author">Andreas et al.</div>
+        </div>
+        <div class="research-item-relevance">Shapes the query agent's architecture. Rather than direct spatial reasoning, the LLM acts as a <strong>probabilistic prior combined with sensor-derived evidence</strong> — more robust in ambiguous environments.</div>
+      </div>
+      <div class="research-item">
+        <div class="research-item-header">
+          <div class="research-item-title">Language Modeling with Editable External Knowledge</div>
+          <div class="research-item-author">Andreas et al.</div>
+        </div>
+        <div class="research-item-relevance">Theoretical grounding for the external graph store design. <strong>Knowledge that lives outside model parameters is verifiable, updateable, and controllable</strong> — exactly what spatial scene graphs require.</div>
+      </div>
+      <div class="research-item">
+        <div class="research-item-header">
+          <div class="research-item-title">PRISM: Pose Registration for Integrated Semantic Mapping</div>
+          <div class="research-item-author">Hart et al.</div>
+        </div>
+        <div class="research-item-relevance">Defines the output contract for the 3D spatial adapter. <strong>Semantic labels anchored to spatial pose</strong> — the interface between geometric processing and downstream robot task planning.</div>
+      </div>
+      <div class="research-item">
+        <div class="research-item-header">
+          <div class="research-item-title">Combinatorial Structure in Sperm Whale Vocalizations</div>
+          <div class="research-item-author">Andreas et al.</div>
+        </div>
+        <div class="research-item-relevance">Methodological foundation for signal adapters. <strong>Finding latent compositional structure in unknown signal domains</strong> — the same problem applies to RF, molecular, and seismic data.</div>
+      </div>
+      <div class="research-item">
+        <div class="research-item-header">
+          <div class="research-item-title">Beyond Parametric Knowledge and Next Token Prediction</div>
+          <div class="research-item-author">Weinberger (keynote)</div>
+        </div>
+        <div class="research-item-relevance">Architectural validation from the LLM side. <strong>Parameters as computation, not storage</strong> — the theoretical case for why external spatial memory is the right design, not a workaround.</div>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-left">
+    <h2 class="reveal">R.A.D. Labs A.I.<br><em>Spatial Search</em></h2>
+    <p class="reveal">
+      This platform started from a simple question: what if you could upload a 3D scan of any space and ask it questions in plain English? The deeper we got, the more we realized the question generalizes — to documents, to audio, to any signal domain where meaning has to be extracted before it can be reasoned over.
+    </p>
+    <p class="reveal">
+      We're at the early stages and actively looking for <strong>research collaborators</strong> — particularly in robotics, spatial computing, and signal processing — who see the same gap I see and want to work on closing it together.
+    </p>
+    <!-- <div class="skills-list reveal">
+      <div class="skill-item">Vertex AI / GCP</div>
+      <div class="skill-item">Kubeflow Pipelines</div>
+      <div class="skill-item">Python / FastAPI</div>
+      <div class="skill-item">LangGraph / LangChain</div>
+      <div class="skill-item">Docker / Proxmox</div>
+      <div class="skill-item">Open3D / CLIP</div>
+      <div class="skill-item">SvelteKit</div>
+      <div class="skill-item">PostgreSQL / pgvector</div>
+    </div> -->
+  </div>
+
+  <div class="about-right reveal">
+    <!-- <div class="stat-row">
+      <span class="stat-label">Primary Platform</span>
+      <span class="stat-value">Google Cloud / Vertex AI</span>
+    </div> -->
+    <div class="stat-row">
+      <span class="stat-label">Phase 1 Target</span>
+      <span class="stat-value">3D Spatial Search SaaS</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Adapters in Dev</span>
+      <span class="stat-value">3D Spatial + Document</span>
+    </div>
+    <!-- <div class="stat-row">
+      <span class="stat-label">Self-Hosted Infra</span>
+      <span class="stat-value">Proxmox + Docker + Gitea</span>
+    </div> -->
+    <div class="stat-row">
+      <span class="stat-label">Looking For</span>
+      <span class="stat-value">Research Collaborators</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Status</span>
+      <span class="stat-value" style="color: var(--accent);">Active Development</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <p class="eyebrow reveal">// Open to Collaboration</p>
+    <h2 class="reveal">Let's close<br>the gap together.</h2>
+    <p class="reveal">If you're working on problems where physical signal needs to become queryable knowledge — in robotics, spatial computing, medical imaging, or anywhere else — we'd like to hear from you.</p>
+
+    <div class="contact-form reveal">
+      <input type="text" placeholder="Name / Lab / Institution" />
+      <input type="email" placeholder="Email" />
+      <textarea placeholder="What are you working on? Where do you see overlap?"></textarea>
+      <button class="btn-primary" style="align-self: flex-start;" onclick="alert('Form submitted — thank you. This is a demo; wire up your backend here.')">Send Message</button>
+    </div>
+    <p class="contact-note reveal">Particularly interested in: robotics navigation, spatial AI, signal processing, and embodied AI research.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">© 2026 R.A.D Lab A.I. — Spatial Intelligence Platform</div>
+  <div class="footer-right">Signal → Semantics → Query</div>
+</footer>
+
+<script>
+// ── POINT CLOUD PARTICLE ANIMATION ──
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H, particles = [], mouse = { x: -9999, y: -9999 };
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); init(); });
+
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = rand(0, W);
+    this.y = rand(0, H);
+    this.z = rand(0.1, 1);
+    this.baseX = this.x;
+    this.baseY = this.y;
+    this.vx = rand(-0.08, 0.08) * this.z;
+    this.vy = rand(-0.08, 0.08) * this.z;
+    this.size = rand(0.5, 1.5) * this.z;
+    this.opacity = rand(0.2, 0.6) * this.z;
+    this.color = Math.random() > 0.85
+      ? `rgba(74, 240, 192, ${this.opacity})`
+      : Math.random() > 0.7
+        ? `rgba(26, 143, 255, ${this.opacity * 0.7})`
+        : `rgba(100, 160, 200, ${this.opacity * 0.5})`;
+  }
+  update() {
+    const dx = mouse.x - this.x;
+    const dy = mouse.y - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 120) {
+      const force = (120 - dist) / 120 * 0.4;
+      this.x -= (dx / dist) * force;
+      this.y -= (dy / dist) * force;
+    } else {
+      this.x += (this.baseX - this.x) * 0.02;
+      this.y += (this.baseY - this.y) * 0.02;
+    }
+    this.baseX += this.vx;
+    this.baseY += this.vy;
+    if (this.baseX < 0 || this.baseX > W) this.vx *= -1;
+    if (this.baseY < 0 || this.baseY > H) this.vy *= -1;
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+  }
+}
+
+function init() {
+  const count = Math.floor((W * H) / 8000);
+  particles = Array.from({ length: Math.min(count, 280) }, () => new Particle());
+}
+init();
+
+// Draw connecting lines between nearby particles
+function drawConnections() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 80) {
+        const alpha = (1 - dist / 80) * 0.08;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(74, 240, 192, ${alpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  drawConnections();
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ── SCROLL NAV ──
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
