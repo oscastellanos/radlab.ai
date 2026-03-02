@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>R.A.D. Lab A.I. — Spatial Intelligence Platform</title>
+<title>R.A.D. Lab AI — Spatial Intelligence Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -808,7 +808,7 @@
 
 <!-- NAV -->
 <nav id="nav">
-  <div class="nav-logo">R.A.D. Lab A.I. // Spatial Intelligence</div>
+  <div class="nav-logo">R.A.D. Lab AI // Spatial Intelligence</div>
   <ul class="nav-links">
     <li><a href="#thesis">Thesis</a></li>
     <li><a href="#architecture">Architecture</a></li>
@@ -1039,7 +1039,7 @@
 <!-- ABOUT -->
 <section id="about">
   <div class="about-left">
-    <h2 class="reveal">R.A.D. Labs A.I.<br><em>Spatial Search</em></h2>
+    <h2 class="reveal">R.A.D. Lab AI<br><em>Spatial Search</em></h2>
     <p class="reveal">
       This platform started from a simple question: what if you could upload a 3D scan of any space and ask it questions in plain English? The deeper we got, the more we realized the question generalizes — to documents, to audio, to any signal domain where meaning has to be extracted before it can be reasoned over.
     </p>
@@ -1095,12 +1095,13 @@
     <h2 class="reveal">Let's close<br>the gap together.</h2>
     <p class="reveal">If you're working on problems where physical signal needs to become queryable knowledge — in robotics, spatial computing, medical imaging, or anywhere else — we'd like to hear from you.</p>
 
-    <div class="contact-form reveal">
-      <input type="text" placeholder="Name / Lab / Institution" />
-      <input type="email" placeholder="Email" />
-      <textarea placeholder="What are you working on? Where do you see overlap?"></textarea>
-      <button class="btn-primary" style="align-self: flex-start;" onclick="alert('Form submitted — thank you. This is a demo; wire up your backend here.')">Send Message</button>
-    </div>
+    <form class="contact-form reveal" id="contact-form">
+      <input type="text" name="name" placeholder="Name / Lab / Institution" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <textarea name="message" placeholder="What are you working on? Where do you see overlap?"></textarea>
+      <button type="submit" class="btn-primary" style="align-self: flex-start;" id="contact-submit">Send Message</button>
+      <p id="contact-status" style="display:none; margin-top: 0.5rem; font-size: 0.85rem;"></p>
+    </form>
     <p class="contact-note reveal">Particularly interested in: robotics navigation, spatial AI, signal processing, and embodied AI research.</p>
   </div>
 </section>
@@ -1112,6 +1113,37 @@
 </footer>
 
 <script>
+// ── CONTACT FORM ──
+document.getElementById('contact-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('contact-submit');
+  const status = document.getElementById('contact-status');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  try {
+    const res = await fetch('https://formspree.io/f/xlgwkyld', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new FormData(this)
+    });
+    if (res.ok) {
+      status.textContent = 'Message sent — thank you.';
+      status.style.color = '#4af0c0';
+      status.style.display = 'block';
+      this.reset();
+      btn.textContent = 'Sent';
+    } else {
+      throw new Error();
+    }
+  } catch {
+    status.textContent = 'Something went wrong. Try emailing ozzy@radlab.ai directly.';
+    status.style.color = '#ff6b6b';
+    status.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Send Message';
+  }
+});
+
 // ── POINT CLOUD PARTICLE ANIMATION ──
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
